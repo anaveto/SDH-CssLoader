@@ -4,7 +4,7 @@ import os
 import aiohttp
 import asyncio
 from typing import List
-from css_utils import Result, Log, store_read, get_theme_path
+from css_utils import Result, Log, store_read, get_theme_path, is_steam_vite_build
 from css_browserhook import BrowserTabHook as CssTab, inject, remove
 
 CLASS_MAPPINGS = {}
@@ -30,6 +30,17 @@ def initialize_class_mappings():
         latest_value = data[uid][-1]
         for y in data[uid][:-1]:
             CLASS_MAPPINGS[y] = latest_value
+
+    # Vite builds of Steam rename every class. The translations end at the last webpack build.
+    if is_steam_vite_build():
+        with open(os.path.join(os.path.dirname(__file__), "vite_class_names.json"), "r", encoding="utf-8") as fp:
+            vite_class_names : dict = json.load(fp)
+
+        for y in CLASS_MAPPINGS:
+            CLASS_MAPPINGS[y] = vite_class_names.get(CLASS_MAPPINGS[y], CLASS_MAPPINGS[y])
+
+        CLASS_MAPPINGS.update(vite_class_names)
+        Log(f"Loaded {len(vite_class_names)} class names of the Vite build of Steam")
 
     Log(f"Loaded {len(CLASS_MAPPINGS)} css translations from local file")
 

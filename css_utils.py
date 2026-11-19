@@ -113,6 +113,13 @@ def is_steam_beta_active() -> bool:
 
     return content not in stable_branches
 
+def is_steam_vite_build() -> bool:
+    try:
+        with open(os.path.join(get_steam_path(), "steamui", "index.html"), "r", encoding="utf-8") as fp:
+            return 'type="module"' in fp.read()
+    except OSError:
+        return False
+
 def create_steam_symlink() -> Result:
     return create_symlink(get_theme_path(), os.path.join(get_steam_path(), "steamui", "themes_custom"))
 
